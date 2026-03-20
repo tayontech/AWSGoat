@@ -479,8 +479,8 @@ resource "null_resource" "rds_endpoint" {
   provisioner "local-exec" {
     command     = <<EOF
 RDS_URL="${aws_db_instance.database-instance.endpoint}"
-RDS_URL=$${RDS_URL::-5}
-sed -i "s,RDS_ENDPOINT_VALUE,$RDS_URL,g" ${path.module}/resources/ecs/task_definition.json
+RDS_URL=$${RDS_URL%:*}
+sed -i'' -e "s,RDS_ENDPOINT_VALUE,$RDS_URL,g" ${path.module}/resources/ecs/task_definition.json
 EOF
     interpreter = ["/bin/bash", "-c"]
   }
@@ -494,8 +494,8 @@ resource "null_resource" "cleanup" {
   provisioner "local-exec" {
     command     = <<EOF
 RDS_URL="${aws_db_instance.database-instance.endpoint}"
-RDS_URL=$${RDS_URL::-5}
-sed -i "s,$RDS_URL,RDS_ENDPOINT_VALUE,g" ${path.module}/resources/ecs/task_definition.json
+RDS_URL=$${RDS_URL%:*}
+sed -i'' -e "s,$RDS_URL,RDS_ENDPOINT_VALUE,g" ${path.module}/resources/ecs/task_definition.json
 EOF
     interpreter = ["/bin/bash", "-c"]
   }
