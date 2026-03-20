@@ -357,7 +357,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   }
 
   vpc_security_group_ids = [aws_security_group.ecs_sg.id]
-  user_data              = base64encode(data.template_file.user_data.rendered)
+  user_data              = base64encode(local.user_data)
 }
 
 resource "aws_autoscaling_group" "ecs_asg" {
@@ -382,12 +382,13 @@ resource "aws_ecs_cluster" "cluster" {
   }
 }
 
-data "template_file" "user_data" {
-  template = file("${path.module}/resources/ecs/user_data.tpl")
+locals {
+  user_data            = file("${path.module}/resources/ecs/user_data.tpl")
+  task_definition_json = file("${path.module}/resources/ecs/task_definition.json")
 }
 
 resource "aws_ecs_task_definition" "task_definition" {
-  container_definitions    = data.template_file.task_definition_json.rendered
+  container_definitions    = local.task_definition_json
   family                   = "ECS-Lab-Task-definition"
   network_mode             = "bridge"
   memory                   = "512"
@@ -404,13 +405,6 @@ resource "aws_ecs_task_definition" "task_definition" {
     name      = "kernels"
     host_path = "/usr/src/kernels"
   }
-}
-
-data "template_file" "task_definition_json" {
-  template = file("${path.module}/resources/ecs/task_definition.json")
-  depends_on = [
-    null_resource.rds_endpoint
-  ]
 }
 
 
